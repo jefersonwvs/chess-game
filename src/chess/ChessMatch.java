@@ -50,7 +50,7 @@ public class ChessMatch {
 	public boolean isCheckMate() {
 		return checkMate;
 	}
-	
+
 	public ChessPiece getEnPassantVulnerable() {
 		return enPassantVulnerable;
 	}
@@ -90,15 +90,16 @@ public class ChessMatch {
 		} else {
 			nextTurn();
 		}
-		
+
 		// special move en passant
-		ChessPiece movedPiece = (ChessPiece)board.piece(target);
-		if (movedPiece instanceof Pawn && (target.getRow() == source.getRow() - 2 || target.getRow() == source.getRow() + 2)) {
+		ChessPiece movedPiece = (ChessPiece) board.piece(target);
+		if (movedPiece instanceof Pawn
+						&& (target.getRow() == source.getRow() - 2 || target.getRow() == source.getRow() + 2)) {
 			enPassantVulnerable = movedPiece;
 		} else {
 			enPassantVulnerable = null;
 		}
-		
+
 		return (ChessPiece) capturedPiece;
 	}
 
@@ -126,6 +127,20 @@ public class ChessMatch {
 			ChessPiece rook2 = (ChessPiece) board.removePiece(sourceR2);
 			board.placePiece(rook2, targetR2);
 			rook2.increaseMoveCount();
+		}
+		// #specialmove en passant
+		if (p instanceof Pawn) {
+			if (source.getColumn() != target.getColumn() && capturedPiece == null) {
+				Position pawnPosition;
+				if (p.getColor() == Color.WHITE) {
+					pawnPosition = new Position(target.getRow() + 1, target.getColumn());
+				} else {
+					pawnPosition = new Position(target.getRow() - 1, target.getColumn());
+				}
+				capturedPiece = board.removePiece(pawnPosition);
+				capturedPieces.add(capturedPiece);
+				piecesOnTheBoard.remove(capturedPiece);
+			}
 		}
 
 		return capturedPiece;
@@ -156,7 +171,19 @@ public class ChessMatch {
 			board.placePiece(rook2, sourceR2);
 			rook2.decreaseMoveCount();
 		}
-
+		// #specialmove en passant
+		if (p instanceof Pawn) {
+			if (source.getColumn() != target.getColumn() && capturedPiece == enPassantVulnerable) {
+				ChessPiece pawn = (ChessPiece)board.removePiece(target);
+				Position pawnPosition;
+				if (p.getColor() == Color.WHITE) {
+					pawnPosition = new Position(3, target.getColumn());
+				} else {
+					pawnPosition = new Position(4, target.getColumn());
+				}
+				board.placePiece(pawn, pawnPosition);
+			}
+		}
 	}
 
 	private void validateSourcePosition(Position position) {
@@ -279,5 +306,5 @@ public class ChessMatch {
 		placeNewPiece('g', 7, new Pawn(board, Color.BLACK, this));
 		placeNewPiece('h', 7, new Pawn(board, Color.BLACK, this));
 	}
-	
+
 }
